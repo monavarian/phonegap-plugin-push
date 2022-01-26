@@ -2,6 +2,7 @@ package com.adobe.phonegap.push;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.ContentResolver;
@@ -12,7 +13,7 @@ import android.media.AudioAttributes;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
+//import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
@@ -102,7 +103,7 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
         mChannel.setLightColor(lightColor);
       }
 
-      int visibility = channel.optInt(VISIBILITY, NotificationCompat.VISIBILITY_PUBLIC);
+      int visibility = channel.optInt(VISIBILITY, Notification.VISIBILITY_PUBLIC);
       mChannel.setLockscreenVisibility(visibility);
 
       boolean badge = channel.optBoolean(BADGE, true);
@@ -318,17 +319,18 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
         public void run() {
           JSONObject jo = new JSONObject();
           try {
-            Log.d(LOG_TAG,
-                "has permission: " + NotificationManagerCompat.from(getApplicationContext()).areNotificationsEnabled());
-            jo.put("isEnabled", NotificationManagerCompat.from(getApplicationContext()).areNotificationsEnabled());
+//            Log.d(LOG_TAG,
+//                "has permission: " + NotificationManager.from(getApplicationContext()).areNotificationsEnabled());
+//            jo.put("isEnabled", NotificationManager.from(getApplicationContext()).areNotificationsEnabled());
             PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, jo);
             pluginResult.setKeepCallback(true);
             callbackContext.sendPluginResult(pluginResult);
           } catch (UnknownError e) {
             callbackContext.error(e.getMessage());
-          } catch (JSONException e) {
-            callbackContext.error(e.getMessage());
           }
+//          catch (JSONException e) {
+//            callbackContext.error(e.getMessage());
+//          }
         }
       });
     } else if (SET_APPLICATION_ICON_BADGE_NUMBER.equals(action)) {

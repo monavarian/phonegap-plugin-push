@@ -2,6 +2,8 @@ package com.adobe.phonegap.push;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.RemoteInput;
+import android.app.Notification.WearableExtender;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -23,9 +25,9 @@ import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationCompat.WearableExtender;
-import android.support.v4.app.RemoteInput;
+//import android.support.v4.app.NotificationCompat;
+//import android.support.v4.app.NotificationCo.WearableExtender;
+//import android.support.v4.app.RemoteInput;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
@@ -392,14 +394,14 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     PendingIntent deleteIntent = PendingIntent.getBroadcast(this, requestCode, dismissedNotificationIntent,
         PendingIntent.FLAG_CANCEL_CURRENT);
 
-    NotificationCompat.Builder mBuilder = null;
+    Notification.Builder mBuilder = null;
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       String channelID = extras.getString(ANDROID_CHANNEL_ID);
 
       // if the push payload specifies a channel use it
       if (channelID != null) {
-        mBuilder = new NotificationCompat.Builder(context, channelID);
+        mBuilder = new Notification.Builder(context, channelID);
       } else {
         List<NotificationChannel> channels = mNotificationManager.getNotificationChannels();
 
@@ -409,11 +411,11 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
           channelID = extras.getString(ANDROID_CHANNEL_ID, DEFAULT_CHANNEL_ID);
         }
         Log.d(LOG_TAG, "Using channel ID = " + channelID);
-        mBuilder = new NotificationCompat.Builder(context, channelID);
+        mBuilder = new Notification.Builder(context, channelID);
       }
 
     } else {
-      mBuilder = new NotificationCompat.Builder(context);
+      mBuilder = new Notification.Builder(context);
     }
 
     mBuilder.setWhen(System.currentTimeMillis()).setContentTitle(fromHtml(extras.getString(TITLE)))
@@ -525,14 +527,14 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     intent.putExtra(NOT_ID, notId);
   }
 
-  private void createActions(Bundle extras, NotificationCompat.Builder mBuilder, Resources resources,
+  private void createActions(Bundle extras, Notification.Builder mBuilder, Resources resources,
       String packageName, int notId) {
     Log.d(LOG_TAG, "create actions: with in-line");
     String actions = extras.getString(ACTIONS);
     if (actions != null) {
       try {
         JSONArray actionsArray = new JSONArray(actions);
-        ArrayList<NotificationCompat.Action> wActions = new ArrayList<NotificationCompat.Action>();
+        ArrayList<Notification.Action> wActions = new ArrayList<Notification.Action>();
         for (int i = 0; i < actionsArray.length(); i++) {
           int min = 1;
           int max = 2000000000;
@@ -578,7 +580,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
                 PendingIntent.FLAG_UPDATE_CURRENT);
           }
 
-          NotificationCompat.Action.Builder actionBuilder = new NotificationCompat.Action.Builder(
+          Notification.Action.Builder actionBuilder = new Notification.Action.Builder(
               getImageId(resources, action.optString(ICON, ""), packageName), action.getString(TITLE), pIntent);
 
           RemoteInput remoteInput = null;
@@ -589,7 +591,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
             actionBuilder.addRemoteInput(remoteInput);
           }
 
-          NotificationCompat.Action wAction = actionBuilder.build();
+          Notification.Action wAction = actionBuilder.build();
           wActions.add(actionBuilder.build());
 
           if (inline) {
@@ -609,7 +611,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     }
   }
 
-  private void setNotificationCount(Context context, Bundle extras, NotificationCompat.Builder mBuilder) {
+  private void setNotificationCount(Context context, Bundle extras, Notification.Builder mBuilder) {
     int count = extractBadgeCount(extras);
     if (count >= 0) {
       Log.d(LOG_TAG, "count =[" + count + "]");
@@ -617,12 +619,12 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     }
   }
 
-  private void setVisibility(Context context, Bundle extras, NotificationCompat.Builder mBuilder) {
+  private void setVisibility(Context context, Bundle extras, Notification.Builder mBuilder) {
     String visibilityStr = extras.getString(VISIBILITY);
     if (visibilityStr != null) {
       try {
         Integer visibility = Integer.parseInt(visibilityStr);
-        if (visibility >= NotificationCompat.VISIBILITY_SECRET && visibility <= NotificationCompat.VISIBILITY_PUBLIC) {
+        if (visibility >= Notification.VISIBILITY_SECRET && visibility <= Notification.VISIBILITY_PUBLIC) {
           mBuilder.setVisibility(visibility);
         } else {
           Log.e(LOG_TAG, "Visibility parameter must be between -1 and 1");
@@ -633,7 +635,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     }
   }
 
-  private void setNotificationVibration(Bundle extras, Boolean vibrateOption, NotificationCompat.Builder mBuilder) {
+  private void setNotificationVibration(Bundle extras, Boolean vibrateOption, Notification.Builder mBuilder) {
     String vibrationPattern = extras.getString(VIBRATION_PATTERN);
     if (vibrationPattern != null) {
       String[] items = vibrationPattern.replaceAll("\\[", "").replaceAll("\\]", "").split(",");
@@ -652,12 +654,12 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     }
   }
 
-  private void setNotificationOngoing(Bundle extras, NotificationCompat.Builder mBuilder) {
+  private void setNotificationOngoing(Bundle extras, Notification.Builder mBuilder) {
     boolean ongoing = Boolean.parseBoolean(extras.getString(ONGOING, "false"));
     mBuilder.setOngoing(ongoing);
   }
 
-  private void setNotificationMessage(int notId, Bundle extras, NotificationCompat.Builder mBuilder) {
+  private void setNotificationMessage(int notId, Bundle extras, Notification.Builder mBuilder) {
     String message = extras.getString(MESSAGE);
     String style = extras.getString(STYLE, STYLE_TEXT);
     if (STYLE_INBOX.equals(style)) {
@@ -674,7 +676,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
           stacking = extras.getString(SUMMARY_TEXT);
           stacking = stacking.replace("%n%", sizeListMessage);
         }
-        NotificationCompat.InboxStyle notificationInbox = new NotificationCompat.InboxStyle()
+        Notification.InboxStyle notificationInbox = new Notification.InboxStyle()
             .setBigContentTitle(fromHtml(extras.getString(TITLE))).setSummaryText(fromHtml(stacking));
 
         for (int i = messageList.size() - 1; i >= 0; i--) {
@@ -683,7 +685,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
 
         mBuilder.setStyle(notificationInbox);
       } else {
-        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
+        Notification.BigTextStyle bigText = new Notification.BigTextStyle();
         if (message != null) {
           bigText.bigText(fromHtml(message));
           bigText.setBigContentTitle(fromHtml(extras.getString(TITLE)));
@@ -693,7 +695,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     } else if (STYLE_PICTURE.equals(style)) {
       setNotification(notId, "");
 
-      NotificationCompat.BigPictureStyle bigPicture = new NotificationCompat.BigPictureStyle();
+      Notification.BigPictureStyle bigPicture = new Notification.BigPictureStyle();
       bigPicture.bigPicture(getBitmapFromURL(extras.getString(PICTURE)));
       bigPicture.setBigContentTitle(fromHtml(extras.getString(TITLE)));
       bigPicture.setSummaryText(fromHtml(extras.getString(SUMMARY_TEXT)));
@@ -705,7 +707,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     } else {
       setNotification(notId, "");
 
-      NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
+      Notification.BigTextStyle bigText = new Notification.BigTextStyle();
 
       if (message != null) {
         mBuilder.setContentText(fromHtml(message));
@@ -728,7 +730,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     }
   }
 
-  private void setNotificationSound(Context context, Bundle extras, NotificationCompat.Builder mBuilder) {
+  private void setNotificationSound(Context context, Bundle extras, Notification.Builder mBuilder) {
     String soundname = extras.getString(SOUNDNAME);
     if (soundname == null) {
       soundname = extras.getString(SOUND);
@@ -745,7 +747,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     }
   }
 
-  private void setNotificationLedColor(Bundle extras, NotificationCompat.Builder mBuilder) {
+  private void setNotificationLedColor(Bundle extras, Notification.Builder mBuilder) {
     String ledColor = extras.getString(LED_COLOR);
     if (ledColor != null) {
       // Converts parse Int Array from ledColor
@@ -765,12 +767,12 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     }
   }
 
-  private void setNotificationPriority(Bundle extras, NotificationCompat.Builder mBuilder) {
+  private void setNotificationPriority(Bundle extras, Notification.Builder mBuilder) {
     String priorityStr = extras.getString(PRIORITY);
     if (priorityStr != null) {
       try {
         Integer priority = Integer.parseInt(priorityStr);
-        if (priority >= NotificationCompat.PRIORITY_MIN && priority <= NotificationCompat.PRIORITY_MAX) {
+        if (priority >= Notification.PRIORITY_MIN && priority <= Notification.PRIORITY_MAX) {
           mBuilder.setPriority(priority);
         } else {
           Log.e(LOG_TAG, "Priority parameter must be between -2 and 2");
@@ -810,7 +812,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
   }
 
   private void setNotificationLargeIcon(Bundle extras, String packageName, Resources resources,
-      NotificationCompat.Builder mBuilder) {
+      Notification.Builder mBuilder) {
     String gcmLargeIcon = extras.getString(IMAGE); // from gcm
     String imageType = extras.getString(IMAGE_TYPE, IMAGE_TYPE_SQUARE);
     if (gcmLargeIcon != null && !"".equals(gcmLargeIcon)) {
@@ -860,7 +862,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
   }
 
   private void setNotificationSmallIcon(Context context, Bundle extras, String packageName, Resources resources,
-      NotificationCompat.Builder mBuilder, String localIcon) {
+      Notification.Builder mBuilder, String localIcon) {
     int iconId = 0;
     String icon = extras.getString(ICON);
     if (icon != null && !"".equals(icon)) {
@@ -877,7 +879,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     mBuilder.setSmallIcon(iconId);
   }
 
-  private void setNotificationIconColor(String color, NotificationCompat.Builder mBuilder, String localIconColor) {
+  private void setNotificationIconColor(String color, Notification.Builder mBuilder, String localIconColor) {
     int iconColor = 0;
     if (color != null && !"".equals(color)) {
       try {
